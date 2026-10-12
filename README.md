@@ -126,11 +126,12 @@ hostname.
 
 Keep credentials and secret values out of source control. Add `.env` to
 `.gitignore` and commit a `.env.example` containing placeholders only.
+The Compose configuration uses the MongoDB service name on its private
+network and does not publish the database port to the host.
 
 ### 3. Run with Docker Compose
 
-From the directory containing `compose.yaml` or `docker-compose.yml`,
-run:
+From the repository root, run:
 
 ``` bash
 docker compose up --build -d
@@ -155,20 +156,21 @@ To stop the services:
 docker compose down
 ```
 
-Use a persistent Docker volume for MongoDB so records are retained when
-containers are recreated. Confirm the actual Compose filename and
-service configuration in the repository before running these commands.
+The Compose file uses a persistent Docker volume for MongoDB so records
+are retained when containers are recreated.
 
 ### 4. Run tests
 
-Install the project's dependencies, then run:
+Install the project's dependencies and Pytest, then run:
 
 ``` bash
-pytest
+python -m pip install -r requirements.txt pytest
+python -m pytest
 ```
 
-The test suite should cover key application operations, including book
-management, availability, and issue/return workflows.
+The test suite exercises book and member validation, availability,
+search, and issue/return workflows without requiring a running MongoDB
+instance.
 
 ### 5. Enable external access with ngrok
 
@@ -202,22 +204,26 @@ and repository setup.
 
 ## Project Structure
 
-A possible structure for the project is:
+A project structure:
 
 ``` text
 LibNora/
 ├── app.py                  # Streamlit entry point
 ├── requirements.txt        # Python dependencies
-├── Dockerfile              # Application image definition
-├── compose.yaml            # Application and database services
 ├── .env.example            # Example environment variables
 ├── .gitignore
-├── tests/                  # Pytest test suite
+├── Dockerfile              # Application image definition
+├── compose.yaml            # Application and database services
 ├── Jenkinsfile             # CI/CD pipeline definition
+├── tests/
+│   └── test_app.py          # Application tests
 └── README.md
 ```
 
-File names may differ in the implemented repository.
+The Jenkins multibranch pipeline runs tests, builds the application
+image, and deploys with Docker Compose on the `main` branch. The Jenkins
+agent must have Python, Docker, and the Compose plugin available. Start
+ngrok separately with `ngrok http 8501` after the application is healthy.
 
 ## Team Responsibilities
 
