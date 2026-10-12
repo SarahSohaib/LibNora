@@ -6,8 +6,17 @@ def runCommand(String command) {
     }
 }
 
+
 pipeline {
     agent any
+
+    environment {
+        MONGODB_URI = credentials('mongodb-uri')
+        MONGODB_DATABASE = credentials('mongodb-database')
+    }
+
+    // Keep your existing options and stages below
+
 
     options {
         skipDefaultCheckout(true)
