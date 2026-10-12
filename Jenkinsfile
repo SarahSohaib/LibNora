@@ -42,9 +42,6 @@ pipeline {
         }
 
         stage('Deploy') {
-            when {
-                branch 'main'
-            }
             steps {
                 script {
                     runCommand('docker compose up -d --no-build')
