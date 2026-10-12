@@ -3,7 +3,7 @@ services:
     build: .
     restart: unless-stopped
     environment:
-      MONGODB_URI: mongodb://mongodb:27017
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongodb:27017}
       MONGODB_DATABASE: ${MONGODB_DATABASE:-libnora}
     ports:
       - "8501:8501"

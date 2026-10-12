@@ -9,7 +9,17 @@ def runCommand(String command) {
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Test') {
             steps {
                 script {
@@ -34,7 +44,7 @@ pipeline {
             }
             steps {
                 script {
-                    runCommand('docker compose up -d')
+                    runCommand('docker compose up -d --no-build')
                 }
             }
         }

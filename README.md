@@ -103,31 +103,28 @@ Install the following before running the project:
 ### 1. Clone the repository
 
 ``` bash
-git clone <repository-url>
+git clone https://github.com/SarahSohaib/LibNora.git
 cd LibNora
 ```
 
-Replace `<repository-url>` with the project's GitHub repository URL.
-
 ### 2. Configure environment variables
 
-Create a local `.env` file using the variables expected by the
-application. For example:
+Copy the example file to `.env` in the repository root. Compose reads
+these values when it starts the services:
 
 ``` env
 MONGODB_URI=mongodb://mongodb:27017
 MONGODB_DATABASE=libnora
 ```
 
-Use `mongodb://localhost:27017` for a Python process running directly on
-the host when MongoDB is also exposed on the host. When the application
-runs inside Docker Compose, use the MongoDB service name as the
-hostname.
+The values above match the Compose MongoDB service and the database name
+used by the application. Keep `.env` local; `.env.example` contains only
+non-secret defaults. MongoDB has no host-published port and is reachable
+only by services on the Compose network.
 
-Keep credentials and secret values out of source control. Add `.env` to
-`.gitignore` and commit a `.env.example` containing placeholders only.
-The Compose configuration uses the MongoDB service name on its private
-network and does not publish the database port to the host.
+To create the local file, run `cp .env.example .env` in a Unix-like
+shell, or `Copy-Item .env.example .env` in PowerShell. The defaults also
+work without a `.env` file.
 
 ### 3. Run with Docker Compose
 
@@ -161,46 +158,51 @@ are retained when containers are recreated.
 
 ### 4. Run tests
 
-Install the project's dependencies and Pytest, then run:
+Install the runtime dependencies and Pytest, then run the existing test
+suite:
 
 ``` bash
 python -m pip install -r requirements.txt pytest
 python -m pytest
 ```
 
-The test suite exercises book and member validation, availability,
-search, and issue/return workflows without requiring a running MongoDB
-instance.
+The Pytest configuration discovers tests under `tests/`. Existing tests
+exercise book and member validation, availability, search, and
+issue/return workflows without requiring a running MongoDB instance.
 
 ### 5. Enable external access with ngrok
 
-Start the application locally, then run:
+With the Compose application running, start ngrok on the Streamlit host
+port:
 
 ``` bash
 ngrok http 8501
 ```
 
-Use the HTTPS forwarding URL provided by ngrok to access the Streamlit
-interface remotely. The laptop, application container, and ngrok process
-must remain running. Share the URL only with intended users, and avoid
-exposing sensitive records or administrative functions without
-appropriate access controls.
+ngrok forwards port 8501, which is the Streamlit application only; do
+not tunnel MongoDB. Keep the application and ngrok running, restrict
+sharing of the forwarding URL, and stop the tunnel when it is no longer
+needed.
 
 ## CI/CD Workflow
 
-The intended Jenkins pipeline follows these stages:
+Configure a Jenkins Multibranch Pipeline job to use this GitHub
+repository and its `Jenkinsfile`. The Jenkins agent must have
+Python 3, Docker, and the Docker Compose plugin installed, and must be
+able to access the local Docker daemon. The pipeline runs these stages:
 
-1.  **Checkout:** Retrieve the latest source code from GitHub.
-2.  **Test:** Run automated tests and stop the pipeline if they fail.
-3.  **Build:** Build the application Docker image.
-4.  **Deploy:** Update the running application on the project laptop.
-5.  **Verify:** Check that the application starts and responds as
-    expected.
+1.  **Checkout:** Check out the revision supplied by the configured
+    GitHub job.
+2.  **Test:** Install `requirements.txt` and Pytest, then run the suite.
+    Jenkins stops on failure, so later stages do not run.
+3.  **Build:** Build the Compose `app` image.
+4.  **Deploy:** On `main` only, start/update the app and MongoDB with
+    Compose, using the image built in the preceding stage.
 
-Configure Jenkins credentials securely and avoid storing tokens,
-passwords, or database secrets in the repository or pipeline script. The
-exact trigger and deployment steps depend on the Jenkins configuration
-and repository setup.
+The Jenkins agent must run on the project laptop (or have access to its
+Docker daemon) for deployment to be local. Configure GitHub access in
+Jenkins when required by the repository; do not put access tokens or
+database credentials in the `Jenkinsfile` or repository.
 
 ## Project Structure
 
@@ -215,15 +217,16 @@ LibNora/
 ├── Dockerfile              # Application image definition
 ├── compose.yaml            # Application and database services
 ├── Jenkinsfile             # CI/CD pipeline definition
+├── pytest.ini               # Pytest discovery settings
 ├── tests/
 │   └── test_app.py          # Application tests
 └── README.md
 ```
 
-The Jenkins multibranch pipeline runs tests, builds the application
-image, and deploys with Docker Compose on the `main` branch. The Jenkins
-agent must have Python, Docker, and the Compose plugin available. Start
-ngrok separately with `ngrok http 8501` after the application is healthy.
+The Jenkins pipeline runs tests before building and deploys with Docker
+Compose on the `main` branch. Start ngrok separately with
+`ngrok http 8501` after the application is healthy; Jenkins does not
+publish MongoDB.
 
 ## Team Responsibilities
 
