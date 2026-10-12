@@ -23,7 +23,10 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    def python = isUnix() ? 'python3' : 'py -3'
+                    def python = isUnix()
+                        ? 'python3'
+                        : '"C:\\Users\\Sarah Sohaib\\FOLDER OF ALL FOLDERS\\miniconda3\\python.exe"'
+
                     runCommand("${python} -m pip install -r requirements.txt pytest")
                     runCommand("${python} -m pytest -q")
                 }
