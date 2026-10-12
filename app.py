@@ -178,6 +178,10 @@ def list_books(books: Any, query: str = "") -> list[dict[str, Any]]:
     )
 
 
+def _section_index(section: str | None, sections: list[str]) -> int:
+    return sections.index(section) if section in sections else 0
+
+
 def _database(uri: str, database_name: str) -> Any:
     from pymongo import MongoClient
 
@@ -194,6 +198,16 @@ def _database(uri: str, database_name: str) -> Any:
 
 
 def run_app() -> None:
+    import streamlit as st
+    from pymongo.errors import PyMongoError
+
+    try:
+        _run_app()
+    except PyMongoError as error:
+        st.error(f"MongoDB operation failed: {error}")
+
+
+def _run_app() -> None:
     import os
 
     import streamlit as st
@@ -216,9 +230,14 @@ def run_app() -> None:
         st.error(f"Could not connect to MongoDB: {error}")
         st.stop()
 
+    sections = ["Dashboard", "Books", "Members", "Issue / Return"]
     section = st.sidebar.radio(
-        "Navigation", ["Dashboard", "Books", "Members", "Issue / Return"]
+        "Navigation",
+        sections,
+        index=_section_index(st.query_params.get("section"), sections),
     )
+    if st.query_params.get("section") != section:
+        st.query_params["section"] = section
     books = db.books
     users = db.users
     loans = db.loans

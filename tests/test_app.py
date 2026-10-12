@@ -10,6 +10,7 @@ from app import (
     issue_book,
     list_books,
     return_book,
+    _section_index,
     update_book,
 )
 
@@ -294,3 +295,12 @@ def test_book_search_results_are_sorted_case_insensitively():
         "mango",
         "zebra",
     ]
+
+
+def test_section_index_restores_view_after_browser_refresh():
+    sections = ["Dashboard", "Books", "Members", "Issue / Return"]
+
+    assert _section_index("Books", sections) == 1
+    assert _section_index("Members", sections) == 2
+    assert _section_index(None, sections) == 0
+    assert _section_index("invalid", sections) == 0
