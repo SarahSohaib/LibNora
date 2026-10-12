@@ -1,256 +1,224 @@
 # LibNora
 
-**A smart library management system with automated testing and
-deployment.**
+**A smart library management system with automated testing and deployment.**
 
-LibNora simplifies library operations through a web interface for
-managing books, users, and borrowing transactions. The project combines
-a Python application with persistent MongoDB storage and a containerized
-deployment workflow.
+LibNora is a Python-based library management application that simplifies book management, user records, and borrowing transactions. It combines a Streamlit interface with MongoDB integration and a Docker-based CI/CD workflow powered by Jenkins.
 
 ## Overview
 
-LibNora is designed to make everyday library tasks easier while
-demonstrating a practical DevOps workflow. The application runs on the
-project team's laptop in Docker containers and can be shared externally
-through an ngrok tunnel when required.
+LibNora demonstrates how an application can be tested, containerized, and deployed through an automated pipeline. The application runs locally and can optionally be shared through an ngrok tunnel.
 
 ## Features
 
--   **Book management:** Add, view, search, update, and remove book
-    records.
--   **User records:** Maintain library user information.
--   **Issue and return:** Record borrowing and returns.
--   **Availability tracking:** Track which books are available or
-    issued.
--   **Persistent storage:** Store application records in MongoDB.
--   **Automated validation:** Run application tests as part of the CI/CD
-    workflow.
--   **Containerized deployment:** Package and run the application
-    consistently with Docker.
--   **External access:** Optionally expose the local application through
-    ngrok.
+- **Book Management:** Add, view, search, update, and remove book records.
+- **User Management:** Maintain library member information.
+- **Issue and Return:** Manage book borrowing and return transactions.
+- **Availability Tracking:** Track whether books are available or issued.
+- **Database Integration:** Store library records using MongoDB and PyMongo.
+- **Automated Testing:** Validate application functionality using Pytest.
+- **Containerization:** Package the application using Docker.
+- **Automated CI/CD:** Run tests, build the application image, and deploy through Jenkins.
+- **Optional External Access:** Share the local application through ngrok.
 
 ## Technology Stack
 
-  -----------------------------------------------------------------------
-  Component               Technology              Purpose
-  ----------------------- ----------------------- -----------------------
-  User interface          Streamlit               Interactive web
-                                                  interface
-
-  Application logic       Python                  Library operations and
-                                                  business rules
-
-  Database                MongoDB                 Persistent storage
-
-  Database driver         PyMongo                 Python-to-MongoDB
-                                                  connectivity
-
-  Containers              Docker, Docker Compose  Package and run
-                                                  application services
-
-  Version control         Git, GitHub             Source control and
-                                                  collaboration
-
-  CI/CD                   Jenkins                 Automate testing, image
-                                                  building, and
-                                                  deployment
-
-  Testing                 Pytest                  Automated application
-                                                  tests
-
-  External access         ngrok                   Securely expose the
-                                                  local web interface
-                                                  when needed
-  -----------------------------------------------------------------------
+| Component | Technology | Purpose |
+|---|---|---|
+| User Interface | Streamlit | Interactive web interface |
+| Application Logic | Python | Library operations |
+| Database | MongoDB | Data persistence |
+| Database Driver | PyMongo | Python-to-MongoDB connectivity |
+| Containerization | Docker | Application packaging |
+| Container Management | Docker Compose | Application lifecycle management |
+| Version Control | Git, GitHub | Source control and collaboration |
+| CI/CD | Jenkins | Automated testing, building, and deployment |
+| Testing | Pytest | Automated test execution |
+| External Access | ngrok | Optional access to the local application |
 
 ## Architecture
 
-``` text
-User's browser
-     |
-     v
-ngrok tunnel (optional)
-     |
-     v
-Streamlit application
-(Python UI and application logic)
-     |
-     v
-MongoDB
-(books, users, borrowing records)
+```text
+                         Application Flow
 
-GitHub --> Jenkins --> Tests --> Docker image --> Local deployment
+User's Browser
+      |
+      v
+ngrok Tunnel (Optional)
+      |
+      v
+Streamlit Application
+(Python)
+      |
+      v
+MongoDB Database
+(Books, Users, Transactions)
+
+
+                          CI/CD Flow
+
+GitHub Repository
+      |
+      v
+Jenkins Pipeline
+      |
+      v
+Checkout Source Code
+      |
+      v
+Run Pytest Suite
+      |
+      v
+Build Docker Image
+      |
+      v
+Deploy Using Docker Compose
+      |
+      v
+Local Application
 ```
 
-The application and database communicate over the Docker Compose
-network. MongoDB should not be exposed directly to the public internet.
-ngrok is used only to provide access to the application interface.
+The application connects to MongoDB through the configured connection URI. Docker Compose manages the application container, while Jenkins automates the testing, image-building, and deployment stages.
 
 ## Getting Started
 
 ### Prerequisites
 
-Install the following before running the project:
+- Git
+- Docker Desktop with Docker Compose
+- Python 3 and pip, for running tests locally
+- A reachable MongoDB instance and valid connection settings
+- Jenkins, for automated CI/CD
+- ngrok, if external access is required
 
--   Python and pip, if running without Docker
--   Docker and Docker Compose
--   Git
--   Jenkins, for the CI/CD workflow
--   An ngrok account and client, if external access is needed
+### 1. Clone the Repository
 
-### 1. Clone the repository
-
-``` bash
+```bash
 git clone https://github.com/SarahSohaib/LibNora.git
 cd LibNora
 ```
 
-### 2. Configure environment variables
+### 2. Configure Environment Variables
 
-Copy the example file to `.env` in the repository root. Compose reads
-these values when it starts the services:
+Create a `.env` file in the project root and configure the MongoDB connection:
 
-``` env
-MONGODB_URI=mongodb://mongodb:27017
+```env
+MONGODB_URI=mongodb://localhost:27017
 MONGODB_DATABASE=libnora
 ```
 
-The values above match the Compose MongoDB service and the database name
-used by the application. Keep `.env` local; `.env.example` contains only
-non-secret defaults. MongoDB has no host-published port and is reachable
-only by services on the Compose network.
+Use a URI appropriate for your environment. For a MongoDB instance running in another container or on a remote server, `localhost` may not be the correct hostname.
 
-To create the local file, run `cp .env.example .env` in a Unix-like
-shell, or `Copy-Item .env.example .env` in PowerShell. The defaults also
-work without a `.env` file.
+Keep `.env` out of version control. Never commit database credentials, access tokens, or sensitive user information.
 
-### 3. Run with Docker Compose
+### 3. Run the Application
 
-From the repository root, run:
+Build and start the application using Docker Compose:
 
-``` bash
+```bash
 docker compose up --build -d
 ```
 
-Open the Streamlit application at:
+Open the application in your browser:
 
-``` text
-http://localhost:8501
-```
+**http://localhost:8501**
 
-To inspect running services and logs:
+Check the container status and application logs:
 
-``` bash
+```bash
 docker compose ps
-docker compose logs -f
+docker compose logs -f app
 ```
 
-To stop the services:
+Stop the application with:
 
-``` bash
+```bash
 docker compose down
 ```
 
-The Compose file uses a persistent Docker volume for MongoDB so records
-are retained when containers are recreated.
+**Database note:** The current `compose.yaml` defines the application service only. MongoDB must be reachable using the configured URI. If MongoDB is containerized separately, configure the appropriate network and hostname. Data persistence depends on the MongoDB deployment and its storage configuration.
 
-### 4. Run tests
+### 4. Run Tests Locally
 
-Install the runtime dependencies and Pytest, then run the existing test
-suite:
+Install the dependencies and run the test suite:
 
-``` bash
+```bash
 python -m pip install -r requirements.txt pytest
-python -m pytest
+python -m pytest -q
 ```
 
-The Pytest configuration discovers tests under `tests/`. Existing tests
-exercise book and member validation, availability, search, and
-issue/return workflows without requiring a running MongoDB instance.
+The tests validate supported application functionality without requiring a live MongoDB connection where the tests use mocks or isolated test data.
 
-### 5. Enable external access with ngrok
+### 5. Enable External Access
 
-With the Compose application running, start ngrok on the Streamlit host
-port:
+With the application running locally, start ngrok:
 
-``` bash
+```bash
 ngrok http 8501
 ```
 
-ngrok forwards port 8501, which is the Streamlit application only; do
-not tunnel MongoDB. Keep the application and ngrok running, restrict
-sharing of the forwarding URL, and stop the tunnel when it is no longer
-needed.
+Use the HTTPS forwarding URL generated by ngrok to access the application externally.
+
+The tunnel must remain active while external access is needed. Do not expose MongoDB or Jenkins through the application tunnel. Restrict access to the forwarding URL and use authentication where appropriate.
 
 ## CI/CD Workflow
 
-Configure a Jenkins Multibranch Pipeline job to use this GitHub
-repository and its `Jenkinsfile`. The Jenkins agent must have
-Python 3, Docker, and the Docker Compose plugin installed, and must be
-able to access the local Docker daemon. The pipeline runs these stages:
+LibNora uses a Jenkins Pipeline defined in the root-level `Jenkinsfile`.
 
-1.  **Checkout:** Check out the revision supplied by the configured
-    GitHub job.
-2.  **Test:** Install `requirements.txt` and Pytest, then run the suite.
-    Jenkins stops on failure, so later stages do not run.
-3.  **Build:** Build the Compose `app` image.
-4.  **Deploy:** On `main` only, start/update the app and MongoDB with
-    Compose, using the image built in the preceding stage.
+The pipeline contains four stages:
 
-The Jenkins agent must run on the project laptop (or have access to its
-Docker daemon) for deployment to be local. Configure GitHub access in
-Jenkins when required by the repository; do not put access tokens or
-database credentials in the `Jenkinsfile` or repository.
+1. **Checkout:** Retrieve the source code from the configured GitHub repository.
+2. **Test:** Install project dependencies and run the Pytest suite. A test failure stops subsequent stages.
+3. **Build:** Build the Docker image using `docker compose build app`.
+4. **Deploy:** Start or update the Compose application using `docker compose up -d --no-build`.
+
+### Jenkins Requirements
+
+The Jenkins agent requires:
+
+- Git access to the repository.
+- Python 3 and pip.
+- Docker and the Docker Compose plugin.
+- Permission to access the Docker daemon.
+- Valid Jenkins credentials for the MongoDB settings referenced in the `Jenkinsfile`.
+
+The current pipeline deploys on each successful pipeline run; it does not restrict deployment to the `main` branch. Deployment occurs on the machine or Docker host accessible to the Jenkins agent.
+
+GitHub webhook integration can trigger builds automatically when configured correctly. Jenkins should remain protected by its normal security and CSRF protections.
 
 ## Project Structure
 
-A project structure:
-
-``` text
+```text
 LibNora/
-├── app.py                  # Streamlit entry point
+├── app.py                  # Streamlit application
 ├── requirements.txt        # Python dependencies
-├── .env.example            # Example environment variables
-├── .gitignore
-├── Dockerfile              # Application image definition
-├── compose.yaml            # Application and database services
-├── Jenkinsfile             # CI/CD pipeline definition
-├── pytest.ini               # Pytest discovery settings
+├── .gitignore              # Files excluded from Git
+├── Dockerfile              # Docker image definition
+├── compose.yaml            # Application service configuration
+├── Jenkinsfile             # CI/CD pipeline
 ├── tests/
-│   └── test_app.py          # Application tests
-└── README.md
+│   └── test_app.py         # Application tests
+└── README.md               # Project documentation
 ```
-
-The Jenkins pipeline runs tests before building and deploys with Docker
-Compose on the `main` branch. Start ngrok separately with
-`ngrok http 8501` after the application is healthy; Jenkins does not
-publish MongoDB.
 
 ## Team Responsibilities
 
--   **Samar:** Streamlit interface, Python application logic, MongoDB
-    integration, core library features, and application-level tests.
--   **Sarah:** Docker, Docker Compose, Jenkins pipeline, CI/CD test
-    integration, laptop deployment, ngrok setup, and DevOps
-    documentation.
+| Team Member | Responsibilities |
+|---|---|
+| Samar | Streamlit interface, Python application logic, MongoDB integration, library features, and application-level tests |
+| Sarah | Docker, Docker Compose, Jenkins pipeline, CI/CD integration, deployment, ngrok setup, and DevOps documentation |
 
-Both contributors share responsibility for integration, debugging,
-end-to-end validation, and the final demonstration.
+Both team members contribute to integration, debugging, end-to-end validation, and the final demonstration.
 
 ## Security and Limitations
 
--   Do not commit `.env` files, credentials, or sensitive user data.
--   Do not expose MongoDB directly through ngrok or a public port.
--   Restrict access to the ngrok URL and add authentication where
-    appropriate.
--   Local deployment depends on the laptop's availability, network
-    connectivity, and running services.
--   This project is intended as an academic implementation and should be
-    security-reviewed before use with real library or personal data.
+- Never commit `.env` files, credentials, or sensitive user data.
+- Store required secrets in Jenkins Credentials rather than hardcoding them.
+- Do not expose MongoDB directly to the public internet.
+- Keep Jenkins protected and do not expose it through the application tunnel.
+- Share ngrok URLs only with intended users.
+- Local deployment depends on the host machine, network connectivity, and running services.
+- Review authentication, authorization, input validation, and data protection before using real library or personal data.
 
 ## License
 
-Add a license file if the project is intended for public reuse. Until a
-license is specified, reuse is not explicitly granted.
+No license has been specified yet. Add a `LICENSE` file if the project is intended for public reuse. Until then, reuse is not explicitly granted.
