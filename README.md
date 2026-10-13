@@ -2,7 +2,7 @@
 
 **A smart library management system with automated testing and deployment.**
 
-LibNora is a Python-based library management application that simplifies book management, user records, and borrowing transactions. It combines a Streamlit interface with MongoDB integration and a Docker-based CI/CD workflow powered by Jenkins.
+LibNora is a Python-based library management application that simplifies book management, user records, and borrowing transactions. It combines a Streamlit interface with MongoDB integration and a Docker-based CI/CD workflow powered by Jenkins..
 
 ## Overview
 
